@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Catálogo de Biblioteca — CRUD</title>
+<style>
+  :root {
+    --paper: #faf7f0;
+    --ink: #24211d;
+    --ink-soft: #6b6459;
+    --burgundy: #7a3030;
+    --burgundy-dark: #5c2323;
+    --green: #3d5a4a;
+    --gold: #b08d57;
+    --card: #ffffff;
+    --border: #e4dccb;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    padding: 0;
+  }
+
+  header {
+    padding: 2.5rem 2rem 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  header .kicker {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--green);
+    margin: 0 0 0.4rem;
+  }
+
+  header h1 {
+    font-size: 2.1rem;
+    margin: 0 0 0.3rem;
+    font-weight: 600;
+  }
+
+  header p {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 60ch;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 720px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+  }
+
+  .panel h2 {
+    font-size: 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--burgundy-dark);
+  }
+
+  label {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin: 0.9rem 0 0.3rem;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 0.55rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.92rem;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  input:focus {
+    outline: 2px solid var(--green);
+    outline-offset: 1px;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.9rem;
+  }
+
+  .actions {
+    margin-top: 1.4rem;
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  button {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: var(--burgundy);
+    color: #fff;
+    flex: 1;
+  }
+  .btn-primary:hover { background: var(--burgundy-dark); }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+  }
+  .btn-secondary:hover { border-color: var(--ink-soft); }
+
+  #form-status {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.8rem;
+    color: var(--burgundy);
+    margin-top: 0.7rem;
+    min-height: 1em;
+  }
+
+  .lista-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+  }
+
+  .contagem {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+
+  .ficha {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 3px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ficha.indisponivel {
+    border-left-color: var(--ink-soft);
+    opacity: 0.7;
+  }
+
+  .ficha-info h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.05rem;
+  }
+
+  .ficha-info p {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  .badge {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    display: inline-block;
+    margin-top: 0.3rem;
+  }
+  .badge.disponivel { background: #e5efe8; color: var(--green); }
+  .badge.indisponivel { background: #efece5; color: var(--ink-soft); }
+
+  .ficha-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+  .icon-btn:hover { border-color: var(--burgundy); color: var(--burgundy); }
+
+  .vazio {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--ink-soft);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="kicker">DEMONSTRAÇÃO CRUD — ARRAY EM MEMÓRIA</p>
+  <h1>Catálogo da Biblioteca</h1>
+  <p>Front-end que consome as quatro funções de back-end (Create, Read, Update, Delete) definidas em <code>backend.js</code>, operando sobre um array em memória como estrutura de dados.</p>
+</header>
+
+<main>
+  <section class="panel">
+    <h2 id="form-title">Adicionar livro</h2>
+    <form id="livro-form">
+      <input type="hidden" id="livro-id" />
+
+      <label for="titulo">Título</label>
+      <input type="text" id="titulo" required placeholder="Ex: Dom Casmurro" />
+
+      <label for="autor">Autor</label>
+      <input type="text" id="autor" required placeholder="Ex: Machado de Assis" />
+
+      <label for="ano">Ano de publicação</label>
+      <input type="number" id="ano" placeholder="Ex: 1899" />
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="disponivel" checked />
+        <label for="disponivel" style="margin:0;">Disponível para empréstimo</label>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary" id="submit-btn">Salvar livro</button>
+        <button type="button" class="btn-secondary" id="cancel-btn" style="display:none;">Cancelar</button>
+      </div>
+      <p id="form-status"></p>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="lista-header">
+      <h2 style="margin:0;">Acervo</h2>
+      <span class="contagem" id="contagem">0 livros</span>
+    </div>
+    <div id="lista"></div>
+  </section>
+</main>
+
+<script src="backend.js"></script>
+<script>
+  // ---- Estado da tela (id do livro em edição, se houver) ----
+  let editandoId = null;
+
+  const form = document.getElementById("livro-form");
+  const lista = document.getElementById("lista");
+  const contagem = document.getElementById("contagem");
+  const formTitle = document.getElementById("form-title");
+  const submitBtn = document.getElementById("submit-btn");
+  const cancelBtn = document.getElementById("cancel-btn");
+  const formStatus = document.getElementById("form-status");
+
+  // Alguns livros de exemplo já cadastrados via CREATE
+  ["seed"].forEach(() => {
+    CrudBiblioteca.create({ titulo: "Dom Casmurro", autor: "Machado de Assis", ano: 1899, disponivel: true });
+    CrudBiblioteca.create({ titulo: "Grande Sertão: Veredas", autor: "Guimarães Rosa", ano: 1956, disponivel: false });
+  });
+
+  // ---------- READ: renderiza a lista a partir do array ----------
+  function renderizarLista() {
+    const livros = CrudBiblioteca.read(); // sem id -> retorna todos
+
+    contagem.textContent = `${livros.length} livro${livros.length !== 1 ? "s" : ""}`;
+
+    if (livros.length === 0) {
+      lista.innerHTML = `<div class="vazio">Nenhum livro cadastrado ainda. Use o formulário ao lado para adicionar o primeiro.</div>`;
+      return;
+    }
+
+    lista.innerHTML = livros
+      .map((livro) => `
+        <div class="ficha ${livro.disponivel ? "" : "indisponivel"}">
+          <div class="ficha-info">
+            <h3>${escapeHtml(livro.titulo)}</h3>
+            <p>${escapeHtml(livro.autor)}${livro.ano ? " · " + livro.ano : ""}</p>
+            <span class="badge ${livro.disponivel ? "disponivel" : "indisponivel"}">
+              ${livro.disponivel ? "Disponível" : "Emprestado"}
+            </span>
+          </div>
+          <div class="ficha-actions">
+            <button class="icon-btn" title="Editar" onclick="iniciarEdicao(${livro.id})">✎</button>
+            <button class="icon-btn" title="Excluir" onclick="excluirLivro(${livro.id})">✕</button>
+          </div>
+        </div>
+      `)
+      .join("");
+  }
+
+  // ---------- CREATE / UPDATE (mesmo formulário) ----------
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const dados = {
+      titulo: document.getElementById("titulo").value,
+      autor: document.getElementById("autor").value,
+      ano: document.getElementById("ano").value || null,
+      disponivel: document.getElementById("disponivel").checked,
+    };
+
+    try {
+      if (editandoId === null) {
+        CrudBiblioteca.create(dados);
+        formStatus.textContent = "Livro adicionado ao acervo.";
+      } else {
+        CrudBiblioteca.update(editandoId, dados);
+        formStatus.textContent = "Livro atualizado.";
+      }
+      resetarFormulario();
+      renderizarLista();
+    } catch (err) {
+      formStatus.textContent = err.message;
+    }
+  });
+
+  // ---------- Preparar formulário para UPDATE ----------
+  function iniciarEdicao(id) {
+    const livro = CrudBiblioteca.read(id);
+    if (!livro) return;
+
+    editandoId = livro.id;
+    document.getElementById("titulo").value = livro.titulo;
+    document.getElementById("autor").value = livro.autor;
+    document.getElementById("ano").value = livro.ano ?? "";
+    document.getElementById("disponivel").checked = livro.disponivel;
+
+    formTitle.textContent = "Editar livro";
+    submitBtn.textContent = "Salvar alterações";
+    cancelBtn.style.display = "inline-block";
+    formStatus.textContent = "";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  cancelBtn.addEventListener("click", resetarFormulario);
+
+  function resetarFormulario() {
+    editandoId = null;
+    form.reset();
+    document.getElementById("disponivel").checked = true;
+    formTitle.textContent = "Adicionar livro";
+    submitBtn.textContent = "Salvar livro";
+    cancelBtn.style.display = "none";
+  }
+
+  // ---------- DELETE ----------
+  function excluirLivro(id) {
+    const removido = CrudBiblioteca.deleteById(id);
+    if (removido) {
+      formStatus.textContent = "";
+      if (editandoId === id) resetarFormulario();
+      renderizarLista();
+    }
+  }
+
+  function escapeHtml(texto) {
+    const div = document.createElement("div");
+    div.textContent = texto;
+    return div.innerHTML;
+  }
+
+  // Primeira renderização
+  renderizarLista();
+</script>
+
+</body>
+</html>
